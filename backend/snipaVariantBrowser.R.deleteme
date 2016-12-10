@@ -1,0 +1,482 @@
+library("rCharts")
+library("plyr")
+
+# Aufbau snplist:
+# POS SNP PVAL CMMB R2 FUNC MULTIPLE DISEASE
+#
+# Aufbau genelist:
+# START STOP STRAND NAME 
+#
+# Aufbau regelementlist:
+# START STOP NAME 
+
+# genesort()
+# Generiert Layerinformationen aus Gen/Regelement-Listen mit START, STOP, NAME
+
+
+# neue Variante von Johannes
+genesort2 <- function(glist, labels = TRUE, plotrange_x = 500000, plotrange_x_px = 1024, mindist = 3000, ...) {
+	glist$SIZE <- glist$STOP-glist$START
+	glist$PLOTSIZE <- glist$SIZE
+	glist$PLOTSTART <- glist$START
+	glist$PLOTSTOP <- glist$STOP
+	glist$LAYER <- 1
+	glist.queue <- glist
+	glist.drawn <- glist[-c(1:nrow(glist)),]
+	print("GLIST:")
+	print(summary(glist.queue))
+
+	# calculate actual plot width with labels
+	if (labels) { 
+		png(file = "strwidth.tmp", width = plotrange_x_px, height=1000, pointsize = 30)
+		plot(c(0,plotrange_x),c(0,0))
+		for (i in c(1:nrow(glist.queue))) {
+			labelwidth <- strwidth(glist.queue[i,'NAME'], units="user", cex=0.4) 
+			glist.queue[i,'PLOTSIZE'] <- as.integer(max(labelwidth,glist.queue[i,'PLOTSIZE']))
+			glist.queue[i,'PLOTSTART'] <- as.integer(glist.queue[i,'PLOTSTART']-0.5*(glist.queue[i,'PLOTSIZE']-glist.queue[i,'SIZE']))
+			glist.queue[i,'PLOTSTOP'] <- as.integer(glist.queue[i,'PLOTSTOP']+0.5*(glist.queue[i,'PLOTSIZE']-glist.queue[i,'SIZE']))
+		}
+		dev.off()
+    }
+	
+	
+	checkoverlap <- function(xstart,xstop,ystart,ystop,dist = 0) {
+		if ((xstart <= ystop+dist) && (ystart-dist <= xstop)) { return(TRUE) } else { return(FALSE) }
+	}
+	
+	outersect <- function(x,y) { sort(c(setdiff(x,y),setdiff(y,x))) }
+
+	for (i in c(1:nrow(glist.queue))) {
+		# find longest gene
+		largest <- which(glist.queue$PLOTSIZE == max(glist.queue$PLOTSIZE, na.rm=T))[1]
+
+		# temporary list of overlaps
+		glist.ol <- glist.drawn
+		
+		if (nrow(glist.ol)>0) {
+			glist.ol$OVERLAP <- FALSE
+			
+			# check if current gene is overlapping of the previously drawn genes
+			for (j in c(1:nrow(glist.ol))) {
+				if (checkoverlap(glist.queue[largest,'PLOTSTART'],glist.queue[largest,'PLOTSTOP'],glist.drawn[j,'PLOTSTART'],glist.ol[j,'PLOTSTOP'],mindist)) { glist.ol[j,'OVERLAP'] <- TRUE }
+			}
+		
+			# get list of overlapping genes
+			glist.ol <- subset(glist.ol, OVERLAP == TRUE)
+			if (nrow(glist.ol) > 0) {
+				# find all layervalues and determine empty spot closest to base layer, otherwise add new layer
+				layerlist <- unique(glist.ol$LAYER)
+				layerlist <- layerlist[order(layerlist)]
+				possiblelayers <- c(min(glist$LAYER):max(glist.drawn$LAYER+1))
+				glist.queue[largest,'LAYER'] <- min(outersect(layerlist,possiblelayers))
+			}
+		}
+			
+		# add to drawn list
+		glist.drawn[nrow(glist.drawn)+1,] <- glist.queue[largest,]
+		
+		# remove gene from queue
+		glist.queue <- glist.queue[-largest,]
+	}
+	return(arrange(glist.drawn, START))
+}
+
+
+
+
+locus.plot.highcharts <- function(querysnp, chr, snplist, genelist, regellist) {
+
+# Plotdaten aus der SNPliste extrahieren
+snps <- data.frame(x = numeric(length(snplist$POS)))
+snps$x <- snplist$POS
+snps$y <- snplist$FUNC
+snps$snpname <- snplist$SNP
+snps$group <- snplist$FUNC
+snps$cmmb <- snplist$CMMB
+
+# X-Achse Limits:
+plotxmin <- min(snps$x, na.rm=TRUE)
+plotxmax <- max(snps$x, na.rm=TRUE)
+
+# Plotranges festlegen
+plotmax <- 5*1.2
+
+# Untergrenze: 15% der Plotrange unter y=0 für CMMB-Plot
+plotmin <- -0.15*plotmax
+
+# Pro Layer in der Genliste 7.5% nach unten, -5% Abstand zum CMMB-Plot
+numgenelayers <- 0
+if (nrow(genelist) > 0) {      
+	if (!("LAYER" %in% colnames(genelist))) { genelist$LAYER <- 1 }
+	numgenelayers <- length(levels(factor(genelist$LAYER)))
+}
+
+if (numgenelayers > 0) { 
+						 genelist$LAYER <- plotmin-0.05*plotmax-0.075*plotmax*genelist$LAYER
+						 plotmin <- plotmin-0.05*plotmax-0.075*plotmax*numgenelayers 
+                       }
+
+# Pro Layer in Regelementsliste 2% nach unten, 3% Abstand zu den Genen
+numregellayers <- 0
+if (nrow(regellist) > 0) {  
+	if (!("LAYER" %in% colnames(regellist))) { regellist$LAYER <- 1 }
+	numregellayers <- length(levels(factor(regellist$LAYER)))
+}
+if (numregellayers > 0) { regellist$LAYER <- plotmin-0.02*plotmax-0.03*plotmax*regellist$LAYER
+                          plotmin <- plotmin-0.02*plotmax-0.03*plotmax*numregellayers 
+                        }
+				
+# Zum schluss nochmal 5% Abstand nach unten
+plotmin <- plotmin-0.05*plotmax
+
+plotrange <- -plotmin + plotmax
+
+# tickmarks für p-Werte
+pvalticks <- seq(from = 1, to = 5, by = 1)
+
+
+
+# Rahmenfarbe
+snps$lineColor <- NA
+snps$lineColor[snplist['MULTIPLE'] == 1] <- "#006611"
+snps$lineColor[snplist['DISEASE'] == 1] <- "#003399"
+snps$lineWidth <- NA
+snps$lineWidth[snplist['MULTIPLE'] == 1] <- 1.5
+snps$lineWidth[snplist['DISEASE'] == 1] <- 2
+
+# SNP Gruppen
+# 1: unknown
+# 2: Transkript unbekannt
+# 3: Regulatorisch unbekannt
+# 4: Regulatorisch direkt
+# 5: Transkript direkt
+
+# Punktformen nach Funktion
+groupsymbol <- c("circle","square","diamond","triangle","triangle-down")
+groupname <- c("unknown effect","putative effect on transcript","putative regulatory effect","direct regulatory effect","direct effect on transcript")
+groupsymbolsize <- c(4,4,5,5,5)
+
+
+# annotierte Gene		 
+if (dim(genelist)[1] > 0) {
+	# mittelpunkt für label
+	genelist$middle <- (genelist$STOP+genelist$START)/2					   
+	# label mit pfeilen 
+	genelist$label <- NA
+	if (length(which(genelist$STRAND == "+")) > 0) {	genelist[which(genelist$STRAND == "+"),]$label <- paste(genelist[which(genelist$STRAND == "+"),]$NAME,">") }
+	if (length(which(genelist$STRAND == "-")) > 0) {	genelist[which(genelist$STRAND == "-"),]$label <- paste("<",genelist[which(genelist$STRAND == "-"),]$NAME) }
+
+	genelist$genestart <- genelist$START
+	genelist$genestop <- genelist$STOP
+}
+
+	
+
+# Rekombinationsrate
+gendist <- subset(snplist, select = c("POS","CMMB"))
+gendist <- gendist[which(!is.na(gendist$CMMB)),]
+
+if (nrow(gendist) > 3) {
+	gendist$keep <- TRUE
+	for (i in c(2:(nrow(gendist)-1))) { 
+	   if ((gendist[i,'CMMB'] == gendist[(i-1),'CMMB']) && (gendist[i,'CMMB'] == gendist[(i+1),'CMMB'])) 
+	     { gendist[i,'keep'] <- FALSE }   
+	}
+    gendist <- subset(gendist, keep == TRUE)
+	gendist$keep <- NULL
+}
+
+
+# starte recomb-track 15% der pval-Range unterhalb des SNP-Tracks
+gendist$y <- (0-0.15*plotmax)+(gendist$CMMB/60)*(6*plotmax/8)
+gendist$x <- gendist$POS
+gendist$cmmbmap <- gendist$CMMB # workaround wg cmmb-Spalte in snps
+gendist$CMMB <- NULL
+gendist$POS <- NULL
+
+# LD-Plots: Lösche alle SNPs mit LD < 0.1
+
+#snps <- snps[(snps$y > 0.1),]
+
+
+h <- rCharts:::Highcharts$new()
+
+
+seriestmp <- list()
+
+# SNPs Gruppenweise in plotseries Objekt schreiben
+for (grpcnt in c(1:length(groupname))) {
+    seriestmp[[grpcnt]] <- 
+    list(data = toJSONArray(subset(subset(snps, y > 0.1), group == grpcnt), json=F), 
+	       yAxis = "pvals",
+	       color="#EEEEEE", 
+		   marker=list(lineColor="#444444",
+		               lineWidth=1.2, 
+					   symbol=groupsymbol[grpcnt],
+					   radius=groupsymbolsize[grpcnt],
+					   states=list(hover=list(fillColor="#006600",radius=groupsymbolsize[grpcnt]+3))
+					   ), 
+		   name = groupname[grpcnt], 
+		   turboThreshold = 0, 
+		   type="scatter",
+		   index = grpcnt+5
+		 )
+}
+
+
+seriestmp[[(length(seriestmp)+1)]] <- 
+			  list(data = list(x=0,y=0), 
+				  yAxis = "pvals",
+				  type="scatter", 
+				  color="#EEEEEE", 
+				  showInLegend=TRUE,
+				  name="multiple effects",
+                  marker=list(enabled=TRUE,
+							  states=list(hover=list(enabled=FALSE)),
+							  symbol=groupsymbol[1],
+							  lineWidth=2,
+							  lineColor="#006611"
+							  ),
+				  events=list(legendItemClick="#! function() { return false; } !#"),
+				  index= grpcnt + 6
+				 )
+
+seriestmp[[(length(seriestmp)+1)]] <- 
+			  list(data = list(x=0,y=0), 
+				  yAxis = "pvals",
+				  type="scatter", 
+				  color="#EEEEEE", 
+				  showInLegend=TRUE,
+				  name="associated with trait",
+                  marker=list(enabled=TRUE,
+							  states=list(hover=list(enabled=FALSE)),
+							  symbol=groupsymbol[1],
+							  lineWidth=2,
+							  lineColor="#003399"
+							  ),
+				  events=list(legendItemClick="#! function() { return false; } !#"),
+				  index= grpcnt + 7
+				 )
+
+
+# Gene in plotseries Objekt schreiben
+if (dim(genelist)[1] > 0) {
+	# Dummy-Eintrag, um in der Legende Gene an- und auszuschalten
+	seriestmp[[(length(seriestmp)+1)]] <- 
+			  list(data = list(x=0,y=0), 
+				  yAxis = "pvals",
+				  type="line", 
+				  color="#009900", 
+				  showInLegend=TRUE,
+				  name="transcript",
+                  id="genes",				  
+				  marker=list(enabled=FALSE,
+							  states=list(hover=list(enabled=FALSE))
+							  ),
+				  index=3
+				 )
+	# Schreibe jedes Gen in seinen eigenen Layer im Plotseries-Objekt
+	for (g in c(1:dim(genelist)[1])) {
+	      r <- list(list(x=as.integer(genelist[g,'START']),
+		                 y=genelist[g,'LAYER'],
+						 label=NA,
+						 genename=genelist[g,'NAME'],
+						 geneid=genelist[g,'ID']
+		                ),
+					list(x=as.integer(genelist[g,'middle']),
+		                 y=genelist[g,'LAYER'],
+						 label=genelist[g,'label'],
+						 genename=genelist[g,'NAME'],
+						 geneid=genelist[g,'ID']
+		                ),
+					list(x=as.integer(genelist[g,'STOP']),
+		                 y=genelist[g,'LAYER'],
+						 label=NA,
+						 genename=genelist[g,'NAME'],
+						 geneid=genelist[g,'ID']
+		                )
+				    )
+	  		
+			  seriestmp[[(length(seriestmp)+1)]] <- 
+			  list(data = r, 
+				  yAxis = "pvals",
+				  type="line", 
+				  color="#009900", 
+				  showInLegend=FALSE,
+				  linkedTo="genes",		  
+				  marker=list(enabled=FALSE,
+							  states=list(hover=list(enabled=FALSE))
+							  ),
+				  index=100+g
+				) 
+	}
+}
+
+# Regulatorische Elemente in plotseries Objekt schreiben
+if (dim(regellist)[1] > 0) {
+	# Dummy-Eintrag, um in der Legende Regelemente an- und auszuschalten
+	seriestmp[[(length(seriestmp)+1)]] <- 
+			  list(data = list(x=-10,y=0), 
+				  yAxis = "pvals",
+				  type="line", 
+				  color="#0000FF", 
+				  showInLegend=TRUE,
+				  name="regulatory element",
+                  id="regel",				  
+				  marker=list(enabled=FALSE,
+							  states=list(hover=list(enabled=FALSE))
+							  ),
+				  index=2
+				 )
+	# Schreibe jedes Regelement in seinen eigenen Layer im Plotseries-Objekt
+	for (g in c(1:dim(regellist)[1])) {
+	      r <- list(list(x=as.integer(regellist[g,'START']),
+		                 y=(regellist[g,'LAYER']),
+						 regelname=regellist[g,'NAME']
+		                ),
+				    list(x=as.integer(regellist[g,'STOP']),
+		                 y=(regellist[g,'LAYER']),
+						 regelname=regellist[g,'NAME']
+		                )
+				    )
+			
+			  seriestmp[[(length(seriestmp)+1)]] <- 
+			  list(data = r, 
+				  yAxis = "pvals",
+				  type="line", 
+				  color="#0000FF", 
+				  showInLegend=FALSE,
+				  linkedTo="regel",		  
+				  marker=list(enabled=FALSE,
+							  states=list(hover=list(enabled=FALSE))
+							 ),
+				  index=1000+g
+				) 
+	}
+}
+
+
+
+
+
+# CMMB in Plotseries Objekt schreiben
+seriestmp[[(length(seriestmp)+1)]] <- 
+        list(data = toJSONArray(gendist, json=F),
+		     type="line",
+			 axis="pvals",
+			 index=1,
+			 showInLegend=TRUE,
+			 name="recombination rate",
+			 turboThreshold = 0, 
+			 marker=list(enabled=FALSE,
+		                 states=list(hover=list(enabled=FALSE))
+						),
+			 color="#BBBBFF"
+		    )
+
+
+h$series(seriestmp)
+
+
+yAxistmp <- list()
+# Y-Achse für p-Werte
+yAxistmp[[1]] <- list(
+				# Y-Achse für p-Werte
+				title=list(text= "Linkage disequilibrium (r<sup>2</sup>)",useHTML=TRUE),
+				min=plotmin,
+				max=1.1,
+				tickPositions=pvalticks,
+				startOnTick=FALSE,
+				id="pvals",
+				#gridLineColor="#EEEEEE"
+				gridLineColor="transparent"
+				)
+
+h$yAxis(yAxistmp)
+				
+
+		
+
+# X-Achse mit genetischer Position		
+h$xAxis(title=list(text=paste("Chromosome",chr)), min=plotxmin, max=plotxmax)
+ 
+tooltipfun <- paste("#! function() { 
+               var annourl = 'backend/snipaLDPlotsTooltips.php';
+			   var s = '';
+			   if (this.point.snpname) { 
+				s = $.getAnnotations(annourl+'?jobid=",jobid,"&type=annotation&element=snp&name='+this.point.x); 
+			   }
+			   if (this.point.geneid) {
+			     s = '<strong>' + 
+					 this.point.genename + '</strong><br />' + 
+					 $.getAnnotations(annourl+'?jobid=",jobid,"&type=annotation&element=gene&name='+this.point.geneid);
+			   }
+			   if (this.point.cmmbmap) {
+			     
+			     s = 'Recombination rate: ' + this.point.cmmbmap + ' cM/Mb';
+			   }
+			   if (this.point.regelname) {
+			     s = '<strong>' + 
+					 this.point.regelname + '</strong><br />' +
+					 $.getAnnotations(annourl+'?jobid=",jobid,"&type=annotation&element=regelement&name='+this.point.regelname);
+			   }
+			   return s;
+			  } !#", sep ="")
+			  
+linkfun <- paste("#! function() { 
+               		var annourl = 'backend/snipaLDPlotsTooltips.php';
+					if (this.options.snpname) { url = $.getAnnotations(annourl+'?jobid=",jobid,"&type=link&element=snp&name='+this.options.x); }
+					if (this.options.geneid) { url = $.getAnnotations(annourl+'?jobid=",jobid,"&type=link&element=gene&name='+this.options.geneid); }
+					if (this.options.regelname) { url = $.getAnnotations(annourl+'?jobid=",jobid,"&type=link&element=regelement&name='+this.options.regelname); }
+					if (url != null) {
+						window.open(url,'_blank')
+			        }
+			  } !#", sep="")
+			  
+
+h$tooltip(useHTML=TRUE, formatter = paste(tooltipfun),hideDelay=0,animation=FALSE, borderRadius=0)
+h$chart(zoomType = "x",
+		animation=FALSE,
+		plotBorderColor="#000000",
+		plotBorderWidth=1, 
+		height=600
+		)
+h$plotOptions(scatter=list(animation=FALSE,
+						   cursor="pointer",
+						   point=list(events=list(
+												click=paste("#! function(event) { var tmpevent = event; 
+																				  var tmpsnpname = this.snpname; 
+																				  var tmpsnppos = this.x; 
+																				  var tmpsnpchr = '",chr,"';
+																				  var tmprelease = $('select#rel').val();
+																				  var tmppopulation = $('select#pop').val();
+																				  var tmpannorel = $('select#annorel').val();
+																				  
+																				  showPlotAnnotationMenu(tmpevent,tmpsnpname,tmpsnppos,tmpsnpchr,",snplist[which(snplist$SNP == querysnp),'POS'],",tmprelease,tmppopulation,tmpannorel);
+
+																				  } !#",sep=""),
+												# Zeichne vertikale Line, wenn Cursor über einem SNP steht
+												mouseOver="#! function() { chart.xAxis[0].addPlotLine({color: '#FF0000', width: 1, value: this.x, id: 'vertline'}); } !#",
+												mouseOut="#! function() { chart.xAxis[0].removePlotLine('vertline'); } !#"
+												)
+						              )
+                          ),
+              line=list(animation=FALSE,
+						cursor="pointer",
+						point=list(events=list(click=paste(linkfun))),
+			            dataLabels=list(enabled=TRUE, 
+						                formatter = "#! function() { return this.point.label; }!#"
+										)
+						)
+			  )
+
+	
+	
+hcout <- capture.output(h$print("snipa-raplot-dynamic"))
+
+return(hcout)
+
+
+}
+
+

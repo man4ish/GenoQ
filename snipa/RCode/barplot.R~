@@ -1,0 +1,77 @@
+#a<-as.list(c(22,13,25,43,63,47,42,43,42,75i))
+#b<-as.list(c(12,32,15,41,61,71,45,23,22,45))
+#c<-as.list(c(11,12,11,21,31,11,55,63,72,35))
+args <- commandArgs(trailingOnly = TRUE)
+jobdir<-args[1]
+#data<-read.table("/home/metabolomics/snipa/web/snipa/tmp/Allefreq.txt",sep="\t");
+data<-read.table(paste0(jobdir,"Allefreq.txt"),sep="\t");
+genoq<-data$V1
+common<-data$V2
+thousandgenome<-data$V3
+american<-data$V4
+african<-data$V5
+eastasian<-data$V6
+southeastasian<-data$V7
+european<-data$V8
+
+
+
+library(RCurl)
+require(devtools)
+library(rCharts)
+h <- rCharts:::Highcharts$new()
+h$chart(
+		animation=FALSE,
+		plotBorderWidth=3, 
+		resetZoomButton = list(position = list("x" = -30, "y" = 10)),
+		renderTo = "snipa-raplot-dynamic",
+		spacingTop= 0,
+                #margin=c(50,50,100,50),
+                margin=c(0,0,0,0),
+                borderWidth=2, 
+                marginTop=0,
+                borderColor="red",
+                title<-"X" 
+       )
+
+h$chart(margin = list(left =0))
+xAxistmp <- list()
+#labels=list(style=c(fontSize="15px"))
+xAxistmp[[1]] <- list(title=list(text= "Minor Allele Frequency",useHTML=TRUE,labels=list(style=c(fontSize="15px"))),categories=c('0.05','0.1','0.15','0.2','.25','.3','.35','.4','.45','.5'))
+
+h$xAxis(xAxistmp)
+#h$plotOptions(column=list(animation=FALSE),series=list(pointWidth=20,pointPadding=0.25,groupPadding=0.25)) 
+yAxistmp <- list()
+# Y-Achse für p-Werte
+yAxistmp[[1]] <- list(
+				# Y-Achse für p-Werte
+                                lineWidth=1,
+				title=list(text= "Count",useHTML=TRUE),
+				min=0,
+				#max=2000,
+				#tickPositions=pvalticks,
+				startOnTick=FALSE,
+				endOnTick=FALSE,
+				gridLineWidth=0,
+				gridLineColor="transparent"
+				)
+				
+h$yAxis(yAxistmp)				
+seriestmp<-list()
+
+seriestmp[[1]]<-list(data = genoq,type="column", name="GenoQ", color='coral')
+#seriestmp[[2]]<-list(data = common,type="column", name="Common",color='green')
+#seriestmp[[3]]<-list(data = thousandgenome,type="column", name="1000 Genome",color='red')
+seriestmp[[2]]<-list(data = american,type="column", name="American", color='blue')
+seriestmp[[3]]<-list(data = african,type="column", name="African",color='black')
+seriestmp[[4]]<-list(data = eastasian,type="column", name="East Asian",color='gold')
+
+seriestmp[[5]]<-list(data = southeastasian,type="column", name="South East Asian",color='green')
+
+seriestmp[[6]]<-list(data = european,type="column", name="European",color='red')
+
+h$series(seriestmp)
+#h$save(paste0(jobdir,'barplot.html'), standalone = TRUE)
+h$save('/home/metabolomics/snipa/web/frontend/js/barplot.html', standalone = TRUE)
+
+

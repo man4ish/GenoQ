@@ -1,0 +1,40 @@
+library(RCurl)
+require(devtools)
+args <- commandArgs(trailingOnly = TRUE)
+
+#install_github('rCharts' ,'ramnathv')
+library(rCharts)
+h <- rCharts:::Highcharts$new()
+h$chart(
+		animation=FALSE,
+                spacingBottom=0,
+                spacingLeft=100,
+                spacingRight=0,
+                spacingTop=0,
+                margin=c(0,200,0,0),
+                borderWidth=0
+	)
+
+h$yAxis(minPadding=0);
+h$xAxis(minPadding=0);
+seriestmp<-list()
+a<-list('Downstream',as.numeric(args[1]))
+b<-list('Intron',as.numeric(args[2]))
+c<-list('Non Synonymous Coding',as.numeric(args[3]))
+d<-list('Synonymous Coding',as.numeric(args[4]))
+e<-list('Upstream',as.numeric(args[5]))
+f<-list('UTR 3 Prime',as.numeric(args[6]))
+g<-list('UTR 5 Prime',as.numeric(args[7]))
+h$plotOptions(pie=list(size=200,colors=list('#058DC7', '#50B432', '#ED561B', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4'),animation=FALSE,cursor="pointer",center=list(220, 180), dataLabels=list(
+                        enabled=TRUE
+                    ),showInLegend=FALSE)) 
+h$legend(width=150)                                 
+seriestmp[[1]]<-list(data = list(a,b,c,d,e,f,g),type="pie", name="Snps")
+h$series(seriestmp)
+JobDir<-args[8]
+
+imagepath<-paste0(JobDir,"/piechart.html");
+h$save(imagepath, standalone = TRUE)
+
+#h$save('/home/metabolomics/snipa/web/frontend/js/piechart.html', standalone = TRUE)
+

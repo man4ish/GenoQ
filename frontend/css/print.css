@@ -1,0 +1,163 @@
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: 400;
+	src:
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/_tMhxyW6i8lbI7YsUdFlGA.eot */
+		url('fonts/Ubuntu:400.eot?#iefix') format('embedded-opentype'),
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/_xyN3apAT_yRRDeqB3sPRg.woff */
+		url('fonts/Ubuntu:400.woff') format('woff'),
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/2Q-AW1e_taO6pHwMXcXW5w.ttf */
+		url('fonts/Ubuntu:400.ttf') format('ttf'),
+		/* from http://themes.googleusercontent.com/licensed/font?kit=MOWTjcs_zhdIcGnXsgVhnA#Ubuntu */
+		url('fonts/Ubuntu:400.svg#Ubuntu') format('svg');
+}
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: 700;
+	src:
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/0ihfXUL2emPh0ROJezvraPY6323mHUZFJMgTvxaG2iE.eot */
+		url('fonts/Ubuntu:700.eot?#iefix') format('embedded-opentype'),
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/0ihfXUL2emPh0ROJezvraD8E0i7KZn-EPnyo3HZu7kw.woff */
+		url('fonts/Ubuntu:700.woff') format('woff'),
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/0ihfXUL2emPh0ROJezvraKCWcynf_cDxXwCLxiixG1c.ttf */
+		url('fonts/Ubuntu:700.ttf') format('ttf'),
+		/* from http://themes.googleusercontent.com/licensed/font?kit=0ihfXUL2emPh0ROJezvraJbd9NUM7myrQQz30yPaGQ4#Ubuntu */
+		url('fonts/Ubuntu:700.svg#Ubuntu') format('svg');
+}
+
+a {
+	color: rgb(51,51,51);
+}
+
+body {
+	color: rgb(51,51,51);
+	margin-top: 10px;
+	margin-bottom: 10px;
+	margin-left: 10px;
+	margin-right: 10px;
+	font-family: "Ubuntu", "Arial", sans-serif;
+	/* font-size: 10pt; <-- for use with wkhtmltopdf */
+	font-size: 8pt;
+	height: auto;
+	line-height: 1.2;
+	width: 700px;
+	/* width: 800px; <-- for use with wkhtmltopdf */
+}
+
+img {
+	border: none;
+}
+
+h1 {
+	font-size: 14pt;
+	font-weight: bold;
+	text-align: center;
+}
+
+h1 span.head {
+	background: url(../img/card_logo.png) no-repeat 0px 4px;
+	padding: 0px 0px 0px 48px;
+}
+
+h2 {
+	font-size: 12pt;
+	font-weight: bold;
+}
+
+h3 {
+	font-size: 12pt;
+	font-weight: normal;
+}
+
+h4 {
+	font-size: 10pt;
+	font-weight: bold;
+}
+
+table.annotation {
+	width: 100%;
+	/* background-color: white; */
+	font-size: 9pt;
+	padding: 0px 2px;
+}
+
+table.top {
+	/* background-color: white; */
+}
+
+table.annotation td {
+	vertical-align: top;
+	border-bottom: 1px dashed rgb(200,200,200);
+	max-width: 375px;
+	font-size: 7pt; /* remove for wkhtmltopdf */
+}
+
+table.annotation th {
+	border-bottom: 1px dashed rgb(200,200,200);
+	font-size: 8pt; /* remove for wkhtmltopdf */
+	font-weight: bold; /* remove for wkhtmltopdf */
+	text-align: left; /* remove for wkhtmltopdf */
+}
+
+table.annotation th.duper {
+	text-align: center;
+	font-size: 10pt;
+	border-bottom: 1px solid rgb(100,100,100);
+}
+
+table.annotation th.snpinf {
+	text-align: center;
+	border-bottom: 1px solid rgb(100,100,100);
+	font-size: 10pt;
+	color: rgb(51,51,51);
+}
+
+table.annotation th.super {
+	text-align: center;
+	border-bottom: 1px solid rgb(100,100,100);
+}
+
+table.annotation tr:hover {
+	/* background-color: #eee; */
+}
+
+.annotation-icon  {
+	vertical-align: top;
+	/* padding-right: 10px;
+	background-image: url(../img/common_link_annotation.png);
+	background-repeat: no-repeat;
+	background-position: right center;
+	*/
+}
+
+div.annotation-section {
+	border-bottom: 3px solid #919191;
+	/* border-left: 1px solid #919191; <-- not styled correctly in dompdf
+	border-right: 1px solid #919191; */
+	background-color: #fdfdfd;
+	margin-bottom: 30px;
+}
+
+h2.efftype {
+	font-size: 10pt;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	width: 100%;
+	background-color: #919191;
+	font-weight: normal;
+	color: #fff;
+	text-align: center;
+}
+
+.annotation-section A.web {
+	/* background: url(../img/web.png) no-repeat scroll 3px 4px rgba(0, 0, 0, 0); <-- not styled correctly in dompdf
+	padding-left: 16px; */ 
+	text-decoration: none;
+}
+
+.annotation-section A.web:HOVER{
+	text-decoration: underline;
+}
+

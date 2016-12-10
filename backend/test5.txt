@@ -1,0 +1,1 @@
+/home/metabolomics/snipa/data//genomic/grch37/1kgpp1v3/amr/mapping/grch37-1kgpp1v3-amr-snpswithaliases.gz

@@ -1,0 +1,177 @@
+/*------------------------------------*\
+    Apaxy
+    by @adamwhitcroft
+
+    Theme name: Apaxy
+    Theme author: @adamwhitcroft
+\*------------------------------------*/
+
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: 400;
+	src:
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/_tMhxyW6i8lbI7YsUdFlGA.eot */
+		url('/snipa/frontend/css/fonts/Ubuntu:400.eot?#iefix') format('embedded-opentype'),
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/_xyN3apAT_yRRDeqB3sPRg.woff */
+		url('/snipa/frontend/css/fonts/Ubuntu:400.woff') format('woff'),
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/2Q-AW1e_taO6pHwMXcXW5w.ttf */
+		url('/snipa/frontend/css/fonts/Ubuntu:400.ttf') format('ttf'),
+		/* from http://themes.googleusercontent.com/licensed/font?kit=MOWTjcs_zhdIcGnXsgVhnA#Ubuntu */
+		url('/snipa/frontend/css/fonts/Ubuntu:400.svg#Ubuntu') format('svg');
+}
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: 700;
+	src:
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/0ihfXUL2emPh0ROJezvraPY6323mHUZFJMgTvxaG2iE.eot */
+		url('/snipa/frontend/css/fonts/Ubuntu:700.eot?#iefix') format('embedded-opentype'),
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/0ihfXUL2emPh0ROJezvraD8E0i7KZn-EPnyo3HZu7kw.woff */
+		url('/snipa/frontend/css/fonts/Ubuntu:700.woff') format('woff'),
+		/* from http://themes.googleusercontent.com/static/fonts/ubuntu/v5/0ihfXUL2emPh0ROJezvraKCWcynf_cDxXwCLxiixG1c.ttf */
+		url('/snipa/frontend/css/fonts/Ubuntu:700.ttf') format('ttf'),
+		/* from http://themes.googleusercontent.com/licensed/font?kit=0ihfXUL2emPh0ROJezvraJbd9NUM7myrQQz30yPaGQ4#Ubuntu */
+		url('/snipa/frontend/css/fonts/Ubuntu:700.svg#Ubuntu') format('svg');
+}
+
+
+
+* {
+	margin:0;
+	padding:0;
+	-webkit-box-sizing:border-box;
+	   -moz-box-sizing:border-box;
+	       box-sizing: border-box; 
+}
+
+html {
+	min-height:100%;
+	border-top:10px solid #ECEEF1;
+	border-bottom:10px solid #ECEEF1;
+	color:#61666c;
+	font-weight:400;
+	font-size:1em;
+	font-family:'Ubuntu', sans-serif;
+	line-height:2em;
+}
+body {
+	padding:20px;
+	-webkit-backface-visibility:hidden;
+}
+code {
+	font-family:consolas,monospace;	
+}
+a {
+	color:#61666c;
+	text-decoration:none;
+}
+a:hover {
+	color:#2a2a2a;
+}
+/*------------------------------------*\
+    Wrapper
+\*------------------------------------*/
+.wrapper {
+	margin:0 auto;
+	padding-top:20px;
+	max-width:500px;
+}
+/*------------------------------------*\
+    Demo block
+\*------------------------------------*/
+.block {
+	font-size:.875em;
+	margin:20px 0;
+	padding:20px;
+	color:#9099A3;
+}
+/*------------------------------------*\
+    Table (directory listing)
+\*------------------------------------*/
+table {
+	width:100%;
+	border-collapse:collapse;
+	font-size:.875em;
+}
+tr {
+	outline:0;
+	border:0;
+}
+tr:hover td {
+	background:#f6f6f6;
+}
+th {
+	text-align:left;
+	font-size:.75em;
+	padding-right:20px;
+}
+/* 2nd Column: Filename */
+th + th {
+	width:65%;
+}
+/* 3rd Column: Last Modified */
+th + th + th {
+}
+/* 4th Column: Size */
+th + th + th + th {
+	width:5%;
+}
+tr td:first-of-type {
+	padding-left:10px;
+	padding-right:10px;
+}
+td {
+	padding:5px 0;
+	outline:0;
+	border:0;
+	border-bottom:1px solid #edf1f5;
+	vertical-align:middle;
+	text-align:left;
+	-webkit-transition:background 300ms ease;
+	   -moz-transition:background 300ms ease;
+	    -ms-transition:background 300ms ease;
+	     -o-transition:background 300ms ease;
+	        transition:background 300ms ease;
+}
+td a{
+	display: block;
+}
+tr.parent a[href^="/"] {
+	color:#9099A3;
+}
+	.parent a[href^="/"]:hover {
+		color:#2281d0;
+	}
+/*------------------------------------*\
+    Footer
+\*------------------------------------*/
+.footer {
+	text-align:center;
+	font-size:.75em;
+}
+
+
+#container-banner {
+	height: 80px;
+	margin: 0px;
+   	 padding: 0px;
+	margin-left: auto;
+	margin-right: auto;
+	padding-left: 10px;
+	padding-right: 10px;
+	background-color: white;
+}
+
+#container-all {
+	top: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px; 
+	margin-left: auto;
+	margin-right: auto;
+	padding-left: 20px;
+	padding-right: 20px;
+	min-width: 1000px;
+	max-width: 1000px;
+	text-align: left;
+}

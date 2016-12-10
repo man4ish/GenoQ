@@ -1,0 +1,105 @@
+/* Verstecke Schließen-Button oben rechts im Dialogfeld */
+
+.no-close .ui-dialog-titlebar-close {
+	display: none;
+}
+
+.ui-dialog {
+	padding: 0;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+	height: 23px;
+	background-color: rgb(51,51,51);
+	color: white;
+	border: 0;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 6px;
+	padding-bottom: 0px;
+}
+
+.ui-dialog .ui-dialog-title {
+	margin: 0;
+	font-weight: normal;
+}
+
+
+
+.ui-progressbar {
+	height: 20px;
+}
+
+.progress-label {
+	position: absolute;
+	left: 50%;
+	top: 10px;
+	font-weight: bold;
+}
+
+.ui-progressbar .ui-progressbar-value {
+	margin: -1px;
+	height: 100%;
+	background-image: none;
+	background-color: rgb(150,150,150);
+}
+
+.ui-progressbar .ui-progressbar-overlay {
+	background: url("images/animated-overlay.gif");
+	height: 100%;
+	filter: alpha(opacity=45);
+	opacity: 0.45;
+}
+.ui-progressbar-indeterminate .ui-progressbar-value {
+	background-image: none;
+}
+
+.ui-tabs-nav {
+	height: 29px;
+}
+
+.plots-tabs-tab {
+	height: 26px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+}
+
+.plots-tabs {
+	border: none;
+	background-image: none;
+}
+
+.plots-tabs-body {
+	border: 1px solid black;
+}
+
+.plots-tabs-header {
+	border: none;
+	background-color: rgb(255,255,255);
+	background-image: none;
+}
+
+.plots-tabs-body-content {
+	margin: 0px;
+	padding: 0px;
+}
+
+.plots-tabs-body  {
+	margin: 0px;
+	padding: 0px;
+}
+
+
+
+/* Abstand von Accordion-Inhalt zum "Rahmen" */
+.ui-accordion .ui-accordion-content {
+	padding: 0.2em 0.2em;
+	background-color: #ffffff;
+	border: 1px #eeeeee solid;
+	border-top: 0;
+	overflow: auto;
+}
+
+.ui-tooltip-content {
+	font-size: 8pt;
+}

@@ -1,0 +1,1 @@
+/home/metabolomics/snipa/tools/tabix-0.2.6//tabix '/home/metabolomics/snipa/data//genomic/grch37/1kgpp1v3/amr/mapping/grch37-1kgpp1v3-amr-snpswithaliases.gz' chr'11':'61307803'-'61807803'

@@ -1,0 +1,1 @@
+echo "genoq" | sudo -u root -S Rscript /home/metabolomics/snipa/web//tmpdata/148119699143073/raplot_plot_static.R
